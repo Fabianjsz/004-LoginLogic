@@ -1,8 +1,16 @@
 
+users = ["Fabian", "Emmi"]
+passwords = ["Emmi0707", "penispenis123"]
 
 def is_valid_credentials(u, pw):
-    if u == "Robert" and pw == "password123":
-        print("I love my Girlfriend over everything <3")
+    if u in users:
+        index = users.index(u)
+        if pw == passwords[index]:
+            if u == "Fabian":
+                print("I love my girlfriend more than anything <3")
+            elif u == "Emmi":
+                print("I love my Boyfriend >:(")
+    
     else:
         print("Wrong credentials, please try again")
     
