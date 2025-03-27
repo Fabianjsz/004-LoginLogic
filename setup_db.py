@@ -3,28 +3,23 @@ import os
 
 db_name = "ppab6.db"
 
-def createTable(name):
-    conn = sqlite3.connect(name)
+def createTable(db, tableName):
+    conn = sqlite3.connect(db)
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE users(user VARCHAR, password_hash VARCHAR);")
+    cursor.execute(f"CREATE TABLE '{tableName}'(user VARCHAR, password_hash VARCHAR);")
     conn.commit()
     conn.close()
 
 def listTables(name, fetch):
     #Take name of tables and put the sum after and return a string with all tables 
+    tables = ""
 
     conn = sqlite3.connect(name)
     cursor = conn.cursor()
 
-    tables = ""
-    for i in range(len(fetch)-1):
-        cursor.execute("SELECT COUNT(*) FROM '{name}'")
-        temp = fetch[i]
-        tables = tables + temp
-        print("test: ", tables)
-
-    print("fetch: ",fetch)
-
+    print(fetch)
+    
+    conn.close()
     return tables
 
 
@@ -34,7 +29,6 @@ def setupDb(name):
 
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables = cursor.fetchall()
-    print("tables: ", tables)
 
     if tables:
         temp = input(f"The database '{name}' already exists and contains following tables: \n{listTables(name, tables)} \nWould you like to delete the DB? (Y/N)")
@@ -56,6 +50,9 @@ def setupDb(name):
 
     
 
+createTable(db_name, "Test")
+createTable(db_name, "Test2")
+createTable(db_name, "Test3")
 
 setupDb(db_name)
 
