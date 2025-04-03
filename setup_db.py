@@ -1,94 +1,87 @@
-from getpass import getpass
+import os
 import sqlite3
 import hashlib
-import os
-
-global db_name, tableName
 
 
-db_name = "ppab6.db"
-initTable = "users"
+from dotenv import find_dotenv, load_dotenv
+from getpass import getpass
+from pathlib import Path
+
+
+
+global db_name
+
+
+# Fetch .env file location
+dotenv_path = find_dotenv()
+
+# Load up entries of .env
+load_dotenv(dotenv_path)
+
+# Load .env database name into dbName variable
+dbName = os.getenv("dbName")
+
 
 
 def passwordHasher(pw):
     hashed = hashlib.sha256(pw.encode("utf-8"))
     hashed = hashed.hexdigest()
-    return(hashed)
+    return hashed
 
 
-def createTable(tableName):
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-    cursor.execute(f"CREATE TABLE '{tableName}'(user VARCHAR, password_hash VARCHAR);")
-    conn.commit()
-    conn.close()
+def is_valid_credentials(a, b):
+    temp = 0
+    while temp < 3:
+        con = sqlite3.connect(dbName)
+        cur = con.cursor()
+        cur.execute(f"SELECT user FROM users WHERE user = '{a}' AND password_hash = '{passwordHasher(b)}'")
+        if cur.fetchall():
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
-def listTables(name, fetch):
-    #Take name of tables and put the sum after and return a string with all tables 
-    tables = ""
-
-    conn = sqlite3.connect(name)
-    cursor = conn.cursor()
-
-    print(fetch)
-    
-    conn.close()
-    return tables
-
-
-def setupDb(tableName):
-    conn = sqlite3.connect(db_name)
+# Function which returns every table in given database
+def checkDb():
+    conn = sqlite3.connect(dbName)
     cursor = conn.cursor()
 
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
     tables = cursor.fetchall()
-
-    if tables:
-        temp = input(f"The database '{tableName}' already exists and contains following tables: \n{listTables(tableName, tables)} \nWould you like to delete the DB? (Y/N)")
-        
-        if temp == "n" or temp == "N":
-            conn.close()
-            print("Database was not deleted")
-        elif temp == "y" or temp == "Y":
-            conn.close()
-            os.remove(db_name)
-            print("Database has been removed.")
-        else:
-            raise Exception
-
-    else:
-        print(f"The database '{db_name}' has been created.")
-        conn.close()
-        createTable(initTable)
+    return tables
 
 
+# Function which sets up database
+def setupDb():
+    con = sqlite3.connect(dbName)
+    cur = con.cursor()
+    cur.execute(f"CREATE TABLE users(user VARCHAR, password_hash VARCHAR);")
+    con.commit()
+    
+    dbPath = Path(dbName).resolve() 
+
+    return dbPath
+
+
+# function which adds user to database
 def addUser():
+    
     while True:
-        userName = input("Enter Username ")
-        password = getpass("Select password ")
-
-        con = sqlite3.connect(db_name)
+        con = sqlite3.connect(dbName)
         cur = con.cursor()
+
+
+        userName = input("Enter Username ")
         cur.execute(f"SELECT user FROM users WHERE user = '{userName}'")
-        temp = cur.fetchall()
-        print(temp)
-
-        if temp != []:
-            continue
-
-        else:
+        if cur.fetchall() == []:
+            password = getpass("Select password ")
             cur.execute(f"INSERT INTO users(user, password_hash) VALUES('{userName}', '{passwordHasher(password)}') ")
             con.commit()
             con.close()
             print(f"Successfully added user {userName} into database!")
-            break 
+            break
 
-
-
-
-setupDb(db_name)
-
-addUser()
-
-
+        else:
+            print("user already in database")
